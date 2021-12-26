@@ -1,0 +1,53 @@
+---
+title: "twitter"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(twitteR)
+library(ROAuth)
+library(tm)
+library(rtweet)
+library(wordcloud2)
+library(wordcloud)
+library(openssl)
+library(httpuv)
+library(base64enc)
+library(httr)
+```
+
+```{r}
+consumer_key = "iwAc9IfYNmdbtgwoQohVNCtPc"
+consumer_secret = "UJae3RZ8hmrjaxvlElzD3isbJQdi6i1FHiyCaeJ7d0kNXHE9ci"
+access_token = "1147695691164053504-pRmTBU9yHu2e3Ru8k7cVtWGEFcEEPV"
+access_secret = "o0X3Mvxxm2oMR2knFpi25UyPdfc9Owx4C7CV3xUZqL23W"
+setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+
+```{r}
+#api_key<- "8w1JX6MZjrI0OGKLloljvfwXu"
+#api_secret<- "yT2NkanLqicGid6P8oEHzMvwFC014FSzAilyGdb2BM4DOhf56E"
+#access_token<- "397904324-1j3PA9PrrdSUV7B4g8iK5J1gMdBlsdrGZpWi8f38"
+#access_token_secret<- "szL2yUSgFtTzWWmXBMzSsNLpew3QgV1FMDvqmUAQYGfT3"
+#setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
+```
+
+```{r}
+#CUSTOMER_KEY <- "njqvO4xMoofljmDQBqyPfqjXo"
+#CUSTOMER_SECRET <- "a8Yf3ipR7xrIPphZ45l3LQuyi9K6f1jAzP4eIkg4X9z0OrujTF"
+#ACCESS_TOKEN <- "2164542606-znR5kpn4nTuzWT6Vk3QINbaq4UTrJAc4J3fM4AG"
+#ACCESS_SECRET <- "HwJGqyQouJ11nbWKXBySj5kE3HGcIQL3BeLuIC2qzyqs5"
+#setup_twitter_oauth(CUSTOMER_KEY, CUSTOMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET)
+```
+
+

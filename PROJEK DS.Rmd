@@ -1,0 +1,138 @@
+---
+title: "SHINY"
+author: "SELO"
+date: "1/20/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r required}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(twitteR, wordcloud, tm, tidyr, tidytext, syuzhet, ngram, NLP, RColorBrewer, RTextTools, e1071, caret, knitr)
+```
+
+```{r global}
+library(shiny)
+library(here)
+library(vroom)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(syuzhet)
+library(twitteR)
+library(ROAuth)
+library(tm)
+library(rtweet)
+library(wordcloud)
+
+twitter<- vroom(here("data_bersih.csv"))
+tweet<- twitter$text
+ui <- fluidPage(
+    titlePanel("SENTIMENT ANALISIS VAKSIN SINOVAC"),
+        mainPanel(
+            
+            tabsetPanel(type = "tabs",
+                        tabPanel("Emotion", plotOutput("emotion")), 
+                        # Plot
+                        tabPanel("Data dalam bahasa indonesia", DT::dataTableOutput('tbl')), 
+                        # Output Data Dalam Tabel
+                        tabPanel("Wordcloud", plotOutput("Wordcloud")),
+                        tabPanel("Frekuensi", plotOutput("frekuensi")) 
+                        )
+        )
+    )
+# SERVER
+server <- function(input, output) {
+    
+    #///Output Data
+    output$tbl = DT::renderDataTable({
+        DT::datatable(twitter, options = list(lengthChange = FALSE))
+    })
+    
+    
+    #///Output Emotion
+    output$emotion <- renderPlot({sentiment_dataset<-read.csv("data_bersih.csv",stringsAsFactors = FALSE)
+
+    review <-as.character(sentiment_dataset$text)
+
+    get_nrc_sentiment('happy')
+    get_nrc_sentiment('excitement')
+    s<-get_nrc_sentiment(review)
+
+    review_combine<-cbind(sentiment_dataset$text,s)
+    par(mar=rep(3,4))
+    barplot(colSums(s),col=rainbow(10),ylab='count',main='Sentiment Score For vaksin sinovac')
+    }, height=400)
+    
+    #///Output Wordcloud
+    output$Wordcloud <- renderPlot({tweetVaksin<-readRDS('data_mentah.rds')
+    tweetMentah=twListToDF(tweetVaksin)
+    
+    #cleaning data
+    #hanya ambil tweet saja
+    komen<-tweetMentah$text
+    komenc<-Corpus(VectorSource(komen))
+    
+    #hapus tanda baca, link url, huruf aneh, dan emoji
+    removeURL <-function(x) gsub("http[^[:space:]]*", "", x)
+    twitclean <-tm_map(komenc,removeURL)
+    
+    removeRT<-function(y) gsub("RT", "", y)
+    twitclean<-tm_map(twitclean,removeRT)
+    
+    removeUN<-function(z) gsub("@\\w+", "", z)
+    twitclean<-tm_map(twitclean,removeUN)
+    
+    remove.all <- function(xy) gsub("[^[:alpha:][:space:]]*", "", xy)
+    twitclean <- tm_map(twitclean,remove.all)
+    
+    twitclean<-tm_map(twitclean, removePunctuation)
+    twitclean<-tm_map(twitclean, tolower)
+    
+    removeprambanan<-function(x) gsub("vaksin sinovac", "", x)
+    tweetMentah_new<-tm_map(twitclean,removeprambanan)
+    
+    #membuat nilai untuk masing-masing kata
+    {
+      dtm<-TermDocumentMatrix(tweetMentah_new)
+      m<-as.matrix(dtm)
+      v<-sort(rowSums(m),decreasing = TRUE)
+      tweetMentah_new<-data.frame(word=names(v),freq=v)
+    }
+    head(tweetMentah_new,n=10)
+    
+    set.seed(1234) # for reproducibility 
+    wordcloud(words = tweetMentah_new$word, 
+          freq = tweetMentah_new$freq, 
+          min.freq = 1,           
+          max.words =200, 
+          random.order=FALSE, 
+          rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+    
+  })
+    
+    #///Output frekuensi
+    output$frekuensi <- renderPlot({tweetVaksin<-readRDS('data_mentah.rds')
+    tweetMentah=twListToDF(tweetVaksin)
+    
+    ##visualisasi time series 
+    ts_plot(tweetMentah, "3 hour") +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+      ggplot2::labs(
+        x = NULL, y = NULL,
+        title = "Frekuensi tweet tentang vaksin sinovac selama 9 hari kebelakang",
+        subtitle = "Twitter status (tweet) counts aggregated using three-hour intervals",
+        caption = "\nSource: Data collected from Twitter's REST API via rtweet"
+      )
+    }, height=400)
+}
+shinyApp(ui = ui, server = server)
+```
+
